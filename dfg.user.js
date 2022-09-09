@@ -1,17 +1,15 @@
 // ==UserScript==
-// @name         Reddit Place - Armée de Kameto
-// @namespace    https://github.com/CorentinGC/reddit-place-kcorp
-// @version      0.12
-// @description  On va récuperer ce qui nous est dû de droit.
-// @author       Adcoss95 & CorentinGC
-// @match        https://hot-potato.reddit.com/embed*
-// @match        https://new.reddit.com/r/place/*
-// @match        https://www.reddit.com/r/place/*
-// @icon         https://raw.githubusercontent.com/CorentinGC/reddit-place-kcorp/main/icon.jpg
+// @name         ZEvent Place - DFG
+// @namespace    https://github.com/Brybry16/ZEvent-Place-DFG
+// @version      0.1
+// @description  Overlay DFG pour le Place de ZEvent.
+// @author       Brybry
+// @match        https://place.zevent.fr/*
+// @icon         https://raw.githubusercontent.com/Brybry16/ZEvent-Place-DFG/main/icon.jpg
 // @grant        none
-// @downloadURL  https://raw.githubusercontent.com/CorentinGC/reddit-place-kcorp/main/kcorp.user.js
-// @updateURL    https://raw.githubusercontent.com/CorentinGC/reddit-place-kcorp/main/kcorp.user.js
-// @supportURL   https://github.com/CorentinGC/reddit-place-kcorp/issues
+// @downloadURL  https://raw.githubusercontent.com/Brybry16/ZEvent-Place-DFG/main/kcorp.user.js
+// @updateURL    https://raw.githubusercontent.com/Brybry16/ZEvent-Place-DFG/main/kcorp.user.js
+// @supportURL   https://github.com/Brybry16/ZEvent-Place-DFG/issues
 
 // ==/UserScript==
 
@@ -19,10 +17,12 @@
 const DEBUG = false;
 
 const UPDATE_URL = GM_info.script.updateURL;
-const DISCORD_URL = "https://discord.gg/kameto";
-const OVERLAY_URL = "https://raw.githubusercontent.com/CorentinGC/reddit-place-kcorp/main/overlay.png";
-const VERSION_URL = "https://raw.githubusercontent.com/CorentinGC/reddit-place-kcorp/main/version.json";
-const REDDIT_URL = "https://new.reddit.com/r/place/";
+const OVERLAY_URL = "https://raw.githubusercontent.com/Brybry16/ZEvent-Place-DFG/main/overlay.png";
+const VERSION_URL = "https://raw.githubusercontent.com/Brybry16/ZEvent-Place-DFG/main/version.json";
+const REDDIT_URL = "https://place.zevent.fr/";
+
+const CANVAS_WIDTH = 500;
+const CANVAS_HEIGHT = 500;
 
 const allowedLangs = ['fr', 'en'];
 const defaultOpts = {
@@ -34,9 +34,9 @@ const defaultOpts = {
     VERSION: GM_info.script.version,
     LANG: allowedLangs[0]
 };
-let opts = JSON.parse(localStorage.getItem("kc_opts")) || defaultOpts;
+let opts = JSON.parse(localStorage.getItem("dfg_opts")) || defaultOpts;
 
-const saveOpts = () => localStorage.setItem("kc_opts", JSON.stringify(opts));
+const saveOpts = () => localStorage.setItem("dfg_opts", JSON.stringify(opts));
 const refreshOpts = () => {
     if(GM_info.script.version !== opts.VERSION){
         opts = {
@@ -54,7 +54,7 @@ const refreshOpts = () => {
 const LANGS = {
     fr: {
         update_available: "Mise à jour disponible v{{0}} > v{{1}} ! Cliquez ici pour l'installer",
-        update_reload: "La page va se recharger dans 5secondes, ou vous pouvez le faire manuellement.",
+        update_reload: "La page va se recharger dans 5 secondes, ou vous pouvez le faire manuellement.",
         show: "Afficher",
         hide: "Cacher",
         enable: "Activer",
@@ -65,8 +65,6 @@ const LANGS = {
         btn_autorefresh_overlay: "{{0}} l'auto-refresh de l'overlay ({{1}}s)",
         btn_toggle_cache: "{{0}} le cache de l'overlay",
         overlay_opacity: "Opacité de l'overlay",
-        join_discord: "Rejoindre le discord de Kamet0",
-        by_shadow_team: "KCorp's overlay v{{0}} par la Team de L'Ombre"
     },
     en: {
         update_available: "`Update available v{{0}} > v{{1}} ! Click here to install`",
@@ -81,8 +79,6 @@ const LANGS = {
         btn_autorefresh_overlay: "{{0}} overlay's auto-refresh ({{1}}s)",
         btn_toggle_cache: "{{0}} overlay's cache",
         overlay_opacity: "Overlay's opacity",
-        join_discord: "Join Kamet0's discord !",
-        by_shadow_team: "KCorp's overlay v{{0}} by la Shadow's Team"
     },
 };
 const f = (key, ...vars) => {
@@ -93,7 +89,7 @@ const f = (key, ...vars) => {
 
 if(window.top !== window.self) refreshOpts();
 
-const log = (msg) => DEBUG ? console.log("K-Corp Overlay - ", msg) : null
+const log = (msg) => DEBUG ? console.log("Overlay DFG - ", msg) : null
 const open = (link, autoclose=false) => {
     let tab = window.open(link, "_blank");
     tab.focus();
@@ -132,7 +128,7 @@ const checkVersion = () => {
 
 }
 const showUpdate = (version) => {
-    if(document.getElementById("kcorp-update")) return;
+    if(document.getElementById("dfg-update")) return;
 
     const update = document.createElement("div");
     update.style.position = "fixed";
@@ -149,7 +145,7 @@ const showUpdate = (version) => {
     update.style.borderRadius = "10px";
     update.style.fontSize = "1.3em";
     update.style.cursor = "pointer";
-    update.id = "kcorp-update";
+    update.id = "dfg-update";
 
     let message = document.createTextNode(f("update_available", GM_info.script.version, version));
     update.appendChild(message);
@@ -162,27 +158,27 @@ const showUpdate = (version) => {
 }
 
 (async function() {
-    log("Loading KCorp module");
+    log("Loading DFG module");
 
     if (window.top !== window.self) {
         const overlayURL = () => OVERLAY_URL+(opts.ENABLE_IMGNOCACHE ? "?t="+new Date().getTime() : "");
         log({opts});
 
         window.addEventListener("load", () => {
-            log("Searching embed");
-            let embed = document.getElementsByTagName("mona-lisa-embed");
+            log("Searching game");
+            let embed = document.getElementsByClassName("game")[0];
             if ("undefined" === typeof embed || embed.length < 1) return;
-            log("Found embed");
+            log("Found game");
+
+            log("Searching game-container__inner");
+            let canvas = embed[0].shadowRoot.children[0].getElementsByTagName("game-container__inner")[0];
+            if ("undefined" === typeof canvas || canvas.length < 1) return;
+            log("Found game-container__inner");
 
             log("Searching canvas");
-            let canvas = embed[0].shadowRoot.children[0].getElementsByTagName("mona-lisa-canvas");
-            if ("undefined" === typeof canvas || canvas.length < 1) return;
-            log("Found canvas");
-
-            log("Searching canvasContainer");
             let canvasContainer = canvas[0].shadowRoot.children[0].getElementsByTagName("canvas");
             if ("undefined" === typeof canvasContainer || canvasContainer.length < 1) return;
-            log("Found canvasContainer");
+            log("Found canvas");
 
             let overlay, timer;
             const updateOverlaySrc = () => {
@@ -204,8 +200,8 @@ const showUpdate = (version) => {
                 overlay.style.left = 0;
                 overlay.style.top = 0;
                 overlay.style.imageRendering = "pixelated";
-                overlay.style.width = "2000px";
-                overlay.style.height = "2000px";
+                overlay.style.width = CANVAS_WIDTH + "px";
+                overlay.style.height = CANVAS_HEIGHT + "px";
                 overlay.style.opacity = + opts.OVERLAY_STATE;
                 
                 canvasContainer[0].parentNode.appendChild(overlay);
@@ -252,7 +248,7 @@ const showUpdate = (version) => {
                 control.style.left = "90px";
                 control.style.top = "16px";
                 control.style.maxWidth = "150px";
-                control.id = "kcorp-controls";
+                control.id = "dfg-controls";
 
                 // Update Btn
                 const updateBtn = document.createElement("button");
@@ -348,13 +344,6 @@ const showUpdate = (version) => {
 
                 slider.addEventListener("input", (event) => handleSlider(event));
 
-                // Discord Btn
-                const discordBtn = document.createElement("button");
-                discordBtn.innerHTML = f("join_discord");
-                defaultStyle(discordBtn);
-                defaultBtn(discordBtn);
-                discordBtn.addEventListener("click", () => open(DISCORD_URL));
-
                 const langDiv = document.createElement("div");
                 defaultBlock(langDiv);
                 for(let lang of allowedLangs){
@@ -385,10 +374,10 @@ const showUpdate = (version) => {
                 }
                 // Version
                 const credits = document.createElement("div");
-                credits.id = "kc-credits";
+                credits.id = "dfg-credits";
 
                 const versionSpan = document.createElement("span");
-                versionSpan.innerHTML = f("by_shadow_team", GM_info.script.version);
+                versionSpan.innerHTML = GM_info.script.version;
                 versionSpan.style.position = "fixed";
                 versionSpan.style.bottom = "10px";
                 versionSpan.style.right = "10px";
@@ -402,7 +391,6 @@ const showUpdate = (version) => {
                 control.appendChild(toggleAutorefreshBtn);
                 control.appendChild(toggleNocacheBtn);
                 control.appendChild(sliderBlock);
-                control.appendChild(discordBtn);
                 control.appendChild(langDiv);
 
                 embed[0].parentNode.appendChild(control);
@@ -417,7 +405,7 @@ const showUpdate = (version) => {
             showUi();
         }, false);
     } else checkVersion()
-    log("KCorp module loaded");
+    log("DFG module loaded");
 })();
 
 
