@@ -180,7 +180,7 @@ const showUpdate = (version) => {
             if ("undefined" === typeof canvasContainer || canvasContainer.length < 1) return;
             log("Found canvas");
 
-            let overlay, timer;
+            let overlay, timer, target;
             const updateOverlaySrc = () => {
                 overlay.src = overlayURL();
             }
@@ -204,9 +204,15 @@ const showUpdate = (version) => {
                 overlay.style.height = CANVAS_HEIGHT + "px";
                 overlay.style.opacity = + opts.OVERLAY_STATE;
                 overlay.style.background = "none";
-                
-                canvasContainer.parentNode.appendChild(overlay);
+
+                canvas.appendChild(overlay);
                 log("Overlay reloaded");
+                log("Adjusting target");
+
+                target = document.getElementsByClassName("target")[0];
+                target.style.zIndex = 1000;
+
+                log("Target adjusted");
             }
 
             const showUi = () => {
@@ -408,6 +414,3 @@ const showUpdate = (version) => {
     } else checkVersion()
     log("DFG module loaded");
 })();
-
-
-
