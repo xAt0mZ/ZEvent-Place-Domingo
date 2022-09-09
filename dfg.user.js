@@ -4,7 +4,7 @@
 // @version      0.1
 // @description  Overlay DFG pour le Place de ZEvent.
 // @author       Brybry
-// @match        https://place.zevent.fr/*
+// @match        https://place.zevent.fr/
 // @icon         https://raw.githubusercontent.com/Brybry16/ZEvent-Place-DFG/main/icon.jpg
 // @grant        none
 // @downloadURL  https://raw.githubusercontent.com/Brybry16/ZEvent-Place-DFG/main/kcorp.user.js
@@ -14,7 +14,7 @@
 // ==/UserScript==
 
 // credits to the osu! logo team for script base !
-const DEBUG = false;
+const DEBUG = true;
 
 const UPDATE_URL = GM_info.script.updateURL;
 const OVERLAY_URL = "https://raw.githubusercontent.com/Brybry16/ZEvent-Place-DFG/main/overlay.png";
@@ -160,7 +160,7 @@ const showUpdate = (version) => {
 (async function() {
     log("Loading DFG module");
 
-    if (window.top !== window.self) {
+    if (window.top == window.self) {
         const overlayURL = () => OVERLAY_URL+(opts.ENABLE_IMGNOCACHE ? "?t="+new Date().getTime() : "");
         log({opts});
 
@@ -171,12 +171,12 @@ const showUpdate = (version) => {
             log("Found game");
 
             log("Searching game-container__inner");
-            let canvas = embed[0].shadowRoot.children[0].getElementsByTagName("game-container__inner")[0];
+            let canvas = embed.firstChild.firstChild.firstChild;
             if ("undefined" === typeof canvas || canvas.length < 1) return;
             log("Found game-container__inner");
 
             log("Searching canvas");
-            let canvasContainer = canvas[0].shadowRoot.children[0].getElementsByTagName("canvas");
+            let canvasContainer = canvas.firstChild;
             if ("undefined" === typeof canvasContainer || canvasContainer.length < 1) return;
             log("Found canvas");
 
@@ -204,7 +204,7 @@ const showUpdate = (version) => {
                 overlay.style.height = CANVAS_HEIGHT + "px";
                 overlay.style.opacity = + opts.OVERLAY_STATE;
                 
-                canvasContainer[0].parentNode.appendChild(overlay);
+                canvasContainer.parentNode.appendChild(overlay);
                 log("Overlay reloaded");
             }
 
@@ -393,10 +393,10 @@ const showUpdate = (version) => {
                 control.appendChild(sliderBlock);
                 control.appendChild(langDiv);
 
-                embed[0].parentNode.appendChild(control);
+                embed.parentNode.appendChild(control);
 
                 credits.appendChild(versionSpan);
-                embed[0].parentNode.appendChild(credits);
+                embed.parentNode.appendChild(credits);
                 log("UI Loaded");
             }
 
