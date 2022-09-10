@@ -387,7 +387,7 @@ const showUpdate = (version) => {
                 versionSpan.innerHTML = GM_info.script.version;
                 versionSpan.style.position = "fixed";
                 versionSpan.style.bottom = "10px";
-                versionSpan.style.right = "10px";
+                versionSpan.style.left = "10px";
                 defaultStyle(versionSpan);
                 defaultSpan(versionSpan);
 
